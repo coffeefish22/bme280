@@ -5,7 +5,7 @@
 #include "string.h"
 #include "BME_iic.h"
 
-
+//stm32 rt_thread 2.0
 typedef struct {
 	uint8_t id;
 	uint8_t dig_H1; 
@@ -41,9 +41,9 @@ struct BME280_Sensor_Struct
 	
 	BME280_RegisterDef Register;
 	
-	int adc_H;     		//¼Ä´æÆ÷ÀïµÄÊª¶ÈÖµ                  
-	int adc_T;				//¼Ä´æÆ÷ÀïµÄÎÂ¶ÈÖµ 
-	int adc_P;				//¼Ä´æÆ÷ÀïµÄÑ¹Á¦Öµ
+	int adc_H;     		//å¯„å­˜å™¨é‡Œçš„æ¹¿åº¦å€¼                  
+	int adc_T;				//å¯„å­˜å™¨é‡Œçš„æ¸©åº¦å€¼ 
+	int adc_P;				//å¯„å­˜å™¨é‡Œçš„å‹åŠ›å€¼
 	int t_fine;
 	
 	int Pressure;
@@ -54,7 +54,7 @@ struct BME280_Sensor_Struct
 
 };
 
-#define BME280_DEVICE_ADDR	0x76		//SDO Òı½Å½Ó3.3V  111011x; SDO ½Ó3.3V xµÈÓÚ1£¬½ÓGND xµÈÓÚ0
+#define BME280_DEVICE_ADDR	0x76		//SDO å¼•è„šæ¥3.3V  111011x; SDO æ¥3.3V xç­‰äº1ï¼Œæ¥GND xç­‰äº0
 #define BME280_SIGNAL1			0x01
 #define BME280_SIGNAL2			0x01
 
