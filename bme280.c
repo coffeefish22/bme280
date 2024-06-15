@@ -7,7 +7,7 @@
 #include "globalsys.h"
 #include "globalval.h"
 #ifdef USE_BME280_TASK
-				  
+//stm32 rt_thread 2.0				  
 struct BME280_Sensor_Struct BME280_Sensor1;
 struct BME280_Sensor_Struct BME280_Sensor2;
 #define MAX_BME280_ERROR 30
@@ -16,38 +16,38 @@ char reset_flag=0;
 extern float bak_temp,bak_humi;
 
 /*
- *	º¯ÊıÃû : IIC_ReadOneByte
- *	ÃèÊö	 : I2C¶Á³öÒ»¸ö×Ö½ÚÊı¾İ
- *	ÊäÈë	 £º¼Ä´æÆ÷µØÖ·
- *	·µ»ØÖµ £º¶Á³öÀ´µÄÊı¾İ
+ *	å‡½æ•°å : IIC_ReadOneByte
+ *	æè¿°	 : I2Cè¯»å‡ºä¸€ä¸ªå­—èŠ‚æ•°æ®
+ *	è¾“å…¥	 ï¼šå¯„å­˜å™¨åœ°å€
+ *	è¿”å›å€¼ ï¼šè¯»å‡ºæ¥çš„æ•°æ®
  */
 u8 IIC_ReadOneByte(I2C_Bit_Ops *I2C, u8 dev_addr, u8 reg_addr)
 {				  
 	u8 temp=0;
 	
   IIC_Start(I2C);  	
-	IIC_Send_Byte(I2C, (dev_addr << 1));   //·¢ËÍÆ÷¼şµØÖ·¼ÓĞ´²Ù×÷
+	IIC_Send_Byte(I2C, (dev_addr << 1));   //å‘é€å™¨ä»¶åœ°å€åŠ å†™æ“ä½œ
 	IIC_Wait_Ack(I2C); 
 	
-  IIC_Send_Byte(I2C, reg_addr);   			//·¢ËÍ¼Ä´æÆ÷µØÖ·
+  IIC_Send_Byte(I2C, reg_addr);   			//å‘é€å¯„å­˜å™¨åœ°å€
 	IIC_Wait_Ack(I2C);
 	
 	IIC_Start(I2C);  	 	   
-	IIC_Send_Byte(I2C,  (dev_addr << 1) | 0x01);  //½øÈë½ÓÊÕÄ£Ê½		
+	IIC_Send_Byte(I2C,  (dev_addr << 1) | 0x01);  //è¿›å…¥æ¥æ”¶æ¨¡å¼		
 	IIC_Wait_Ack(I2C);	 
 	temp=IIC_Read_Byte(I2C, 0);		   
 	
-	IIC_Stop(I2C);//²úÉúÒ»¸öÍ£Ö¹Ìõ¼ş	 
+	IIC_Stop(I2C);//äº§ç”Ÿä¸€ä¸ªåœæ­¢æ¡ä»¶	 
 	
 	return temp;
 }
 
 
 /*
- *	º¯ÊıÃû : IIC_Write_OneBytes
- *	ÃèÊö	 : I2CĞ´1¸ö×Ö½ÚµÄÄÚÈİ
- *	ÊäÈë	 £º1.I2CÉè±¸µÄµØÖ· ; 2.¼Ä´æÆ÷µØÖ· ;  4.±»Ğ´µÄÄÚÈİ
- *	·µ»ØÖµ £ºÎŞ
+ *	å‡½æ•°å : IIC_Write_OneBytes
+ *	æè¿°	 : I2Cå†™1ä¸ªå­—èŠ‚çš„å†…å®¹
+ *	è¾“å…¥	 ï¼š1.I2Cè®¾å¤‡çš„åœ°å€ ; 2.å¯„å­˜å™¨åœ°å€ ;  4.è¢«å†™çš„å†…å®¹
+ *	è¿”å›å€¼ ï¼šæ— 
  */
 void IIC_Write_OneBytes(I2C_Bit_Ops *I2C, u8 dev_addr, u8 reg_addr, u8 reg_data)
 {
@@ -57,20 +57,20 @@ void IIC_Write_OneBytes(I2C_Bit_Ops *I2C, u8 dev_addr, u8 reg_addr, u8 reg_data)
 	IIC_Send_Byte(I2C, dev_addr << 1);  
 	IIC_Wait_Ack(I2C);
 	
-  IIC_Send_Byte(I2C, ucAddr % 256);   //·¢ËÍµÍµØÖ·
+  IIC_Send_Byte(I2C, ucAddr % 256);   //å‘é€ä½åœ°å€
 	IIC_Wait_Ack(I2C); 	
 	
-	IIC_Send_Byte(I2C, reg_data);     //·¢ËÍ×Ö½Ú							   
+	IIC_Send_Byte(I2C, reg_data);     //å‘é€å­—èŠ‚							   
 	IIC_Wait_Ack(I2C);  
 	
   IIC_Stop(I2C);
 }
 
 /*
- *	º¯ÊıÃû : IIC_Read_NBytes
- *	ÃèÊö	 : I2C¶Á³öN¸ö×Ö½ÚµÄÄÚÈİ
- *	ÊäÈë	 £º1.I2CÉè±¸µÄµØÖ· ; 2.¼Ä´æÆ÷µØÖ· £» 3.¶Á³öÊı¾İµÄÊıÁ¿ £»4.´æ´¢¶Á³öÊı¾İµÄÊ×µØÖ·
- *	·µ»ØÖµ £ºÎŞ
+ *	å‡½æ•°å : IIC_Read_NBytes
+ *	æè¿°	 : I2Cè¯»å‡ºNä¸ªå­—èŠ‚çš„å†…å®¹
+ *	è¾“å…¥	 ï¼š1.I2Cè®¾å¤‡çš„åœ°å€ ; 2.å¯„å­˜å™¨åœ°å€ ï¼› 3.è¯»å‡ºæ•°æ®çš„æ•°é‡ ï¼›4.å­˜å‚¨è¯»å‡ºæ•°æ®çš„é¦–åœ°å€
+ *	è¿”å›å€¼ ï¼šæ— 
  */
 void IIC_Read_NBytes(I2C_Bit_Ops *I2C, u8 dev_addr, u8 reg_addr, u8 cnt, u8 *reg_data)
 {  	
@@ -87,10 +87,10 @@ void IIC_Read_NBytes(I2C_Bit_Ops *I2C, u8 dev_addr, u8 reg_addr, u8 cnt, u8 *reg
 
 
 /*
- *	º¯ÊıÃû : IIC_Bme280_Init
- *	ÃèÊö	 : BME280 I2C³õÊ¼»¯ ²¢ÇÒ¶Á³ö²¹³¥Öµ
- *	ÊäÈë	 £ºÎŞ
- *	·µ»ØÖµ £ºÎŞ
+ *	å‡½æ•°å : IIC_Bme280_Init
+ *	æè¿°	 : BME280 I2Cåˆå§‹åŒ– å¹¶ä¸”è¯»å‡ºè¡¥å¿å€¼
+ *	è¾“å…¥	 ï¼šæ— 
+ *	è¿”å›å€¼ ï¼šæ— 
  */
 void Bme280_InitParam(struct BME280_Sensor_Struct *BME280)
 {
@@ -99,21 +99,21 @@ void Bme280_InitParam(struct BME280_Sensor_Struct *BME280)
 	uint8_t bme280[7]={0};
 	uint8_t buf_H1 = 0;
 
-	/* ¶ÁÈ¡ÎÂ¶ÈÑ¹Á¦²¹³¥Öµ */
+	/* è¯»å–æ¸©åº¦å‹åŠ›è¡¥å¿å€¼ */
 	IIC_Read_NBytes(BME280->I2C, BME280_DEVICE_ADDR, 0x88 , 24, buf_Bme280);
 	
-	/* ¶ÁÈ¡Êª¶È²¹³¥Öµ */
+	/* è¯»å–æ¹¿åº¦è¡¥å¿å€¼ */
 	IIC_Read_NBytes(BME280->I2C, BME280_DEVICE_ADDR, 0xE1, 7, bme280);
 	
-	/* ¶ÁÈ¡Êª¶È²¹³¥Öµ */
+	/* è¯»å–æ¹¿åº¦è¡¥å¿å€¼ */
 	IIC_Read_NBytes(BME280->I2C, BME280_DEVICE_ADDR, 0xA1, 1, &buf_H1);
 
-	/* ¼ÆËãÎÂ¶È²¹³¥Öµ */	
+	/* è®¡ç®—æ¸©åº¦è¡¥å¿å€¼ */	
 	BME280->Register.dig_T1 = buf_Bme280[1] << 8 | buf_Bme280[0];
 	BME280->Register.dig_T2 = buf_Bme280[3] << 8 | buf_Bme280[2];
 	BME280->Register.dig_T3 = buf_Bme280[5] << 8 | buf_Bme280[4];
 
-	/*¼ÆËãÑ¹Á¦²¹³¥Öµ*/
+	/*è®¡ç®—å‹åŠ›è¡¥å¿å€¼*/
 	BME280->Register.dig_P1 = buf_Bme280[7] << 8 | buf_Bme280[6];
 	BME280->Register.dig_P2 = buf_Bme280[9] << 8 | buf_Bme280[8];
 	BME280->Register.dig_P3 = buf_Bme280[11] << 8 | buf_Bme280[10];
@@ -124,7 +124,7 @@ void Bme280_InitParam(struct BME280_Sensor_Struct *BME280)
 	BME280->Register.dig_P8 = buf_Bme280[21] << 8 | buf_Bme280[20];
 	BME280->Register.dig_P9 = buf_Bme280[23] << 8 | buf_Bme280[22];
 	
-	/*¼ÆËãÊª¶È²¹³¥Öµ*/
+	/*è®¡ç®—æ¹¿åº¦è¡¥å¿å€¼*/
 	BME280->Register.dig_H1 = buf_H1;
 	BME280->Register.dig_H2 = bme280[1] << 8 | bme280[0];
 	BME280->Register.dig_H3 = bme280[2];
@@ -133,19 +133,19 @@ void Bme280_InitParam(struct BME280_Sensor_Struct *BME280)
 	BME280->Register.dig_H6 = bme280[6];
 			
 	t_cmd = 0xB6;
-	/*¸´Î»*/
+	/*å¤ä½*/
 	IIC_Write_OneBytes(BME280->I2C, BME280_DEVICE_ADDR, 0xE0, t_cmd);
 	
 	t_cmd = 0x00;
-	/*ÅäÖÃconfig¼Ä´æÆ÷*/	
+	/*é…ç½®configå¯„å­˜å™¨*/	
 	IIC_Write_OneBytes(BME280->I2C, BME280_DEVICE_ADDR, 0xF5, t_cmd);	
 	
 	t_cmd = 0x05;	
-	/*ÅäÖÃÊª¶È¼Ä´æÆ÷*/		
+	/*é…ç½®æ¹¿åº¦å¯„å­˜å™¨*/		
 	IIC_Write_OneBytes(BME280->I2C, BME280_DEVICE_ADDR, 0xF2, t_cmd);
 	
 	t_cmd = 0xA5;
-	/*ÅäÖÃÎÂ¶È¼°Ñ¹Á¦¼Ä´æÆ÷*/	
+	/*é…ç½®æ¸©åº¦åŠå‹åŠ›å¯„å­˜å™¨*/	
 	IIC_Write_OneBytes(BME280->I2C, BME280_DEVICE_ADDR, 0xF4, t_cmd);
 	
 }
@@ -154,10 +154,10 @@ void Bme280_InitParam(struct BME280_Sensor_Struct *BME280)
 
 
 /*
- *	º¯ÊıÃû : IIC_Bme280_Read_Data
- *	ÃèÊö	 : I2C¶Á³öN¸ö×Ö½ÚµÄÄÚÈİ
- *	ÊäÈë	 £ºÎŞ
- *	·µ»ØÖµ £º
+ *	å‡½æ•°å : IIC_Bme280_Read_Data
+ *	æè¿°	 : I2Cè¯»å‡ºNä¸ªå­—èŠ‚çš„å†…å®¹
+ *	è¾“å…¥	 ï¼šæ— 
+ *	è¿”å›å€¼ ï¼š
  */
 int IIC_Bme280_Read_Data(struct BME280_Sensor_Struct *BME280)
 {
@@ -167,12 +167,12 @@ int IIC_Bme280_Read_Data(struct BME280_Sensor_Struct *BME280)
 	
 	I2C = BME280->I2C;
 	
-	/*foce mode ¿ªÆô*/	
+	/*foce mode å¼€å¯*/	
 	IIC_Write_OneBytes(I2C, BME280_DEVICE_ADDR, 0xF4, 0x25);
 	
 	rt_thread_delay(100);
 
-	/*¶ÁÈ¡ÎÂ¶ÈÑ¹Á¦Êª¶È8¸ö×Ö½ÚÊı¾İ*/	
+	/*è¯»å–æ¸©åº¦å‹åŠ›æ¹¿åº¦8ä¸ªå­—èŠ‚æ•°æ®*/	
 	IIC_Read_NBytes(I2C, BME280_DEVICE_ADDR, 0xF7, 0x08, Buf_Bme280);
 	
 	BME280->adc_T = (int32_t)((Buf_Bme280[3] << 16 | Buf_Bme280[4] << 8 | Buf_Bme280[5]) >> 4);
@@ -193,10 +193,10 @@ int IIC_Bme280_Read_Data(struct BME280_Sensor_Struct *BME280)
 }
 
 /*
- *	º¯ÊıÃû : Bme280_temperature
- *	ÃèÊö	 : BME280 ÎÂ¶ÈÖµ¼ÆËã
- *	ÊäÈë	 £ºÍ¨¹ıI2C¶Á³öµÄÎÂ¶ÈÖµ
- *	·µ»ØÖµ £º¼ÆËãºóµÄÎÂ¶ÈÖµ
+ *	å‡½æ•°å : Bme280_temperature
+ *	æè¿°	 : BME280 æ¸©åº¦å€¼è®¡ç®—
+ *	è¾“å…¥	 ï¼šé€šè¿‡I2Cè¯»å‡ºçš„æ¸©åº¦å€¼
+ *	è¿”å›å€¼ ï¼šè®¡ç®—åçš„æ¸©åº¦å€¼
  */
 int32_t Bme280_temperature(struct BME280_Sensor_Struct *BME280)
 {
@@ -211,10 +211,10 @@ int32_t Bme280_temperature(struct BME280_Sensor_Struct *BME280)
 }
 
 /*
- *	º¯ÊıÃû : Bme280_pressure
- *	ÃèÊö	 : BME280 Ñ¹Á¦Öµ¼ÆËã
- *	ÊäÈë	 £ºÍ¨¹ıI2C¶Á³öµÄÑ¹Á¦
- *	·µ»ØÖµ £º¼ÆËãºóµÄÑ¹Á¦Öµ
+ *	å‡½æ•°å : Bme280_pressure
+ *	æè¿°	 : BME280 å‹åŠ›å€¼è®¡ç®—
+ *	è¾“å…¥	 ï¼šé€šè¿‡I2Cè¯»å‡ºçš„å‹åŠ›
+ *	è¿”å›å€¼ ï¼šè®¡ç®—åçš„å‹åŠ›å€¼
  */
 uint32_t Bme280_pressure(struct BME280_Sensor_Struct *BME280)
 {
@@ -243,10 +243,10 @@ uint32_t Bme280_pressure(struct BME280_Sensor_Struct *BME280)
 }
 
 /*
- *	º¯ÊıÃû : Bme280_compensate_H
- *	ÃèÊö	 : BME280 Êª¶ÈÖµ¼ÆËã
- *	ÊäÈë	 £ºÍ¨¹ıI2C¶Á³öµÄÊª¶ÈÖµ
- *	·µ»ØÖµ £º¼ÆËãºóµÄÊª¶ÈÖµ
+ *	å‡½æ•°å : Bme280_compensate_H
+ *	æè¿°	 : BME280 æ¹¿åº¦å€¼è®¡ç®—
+ *	è¾“å…¥	 ï¼šé€šè¿‡I2Cè¯»å‡ºçš„æ¹¿åº¦å€¼
+ *	è¿”å›å€¼ ï¼šè®¡ç®—åçš„æ¹¿åº¦å€¼
  */
 uint32_t Bme280_compensate_H(struct BME280_Sensor_Struct *BME280)
 {
@@ -265,15 +265,15 @@ uint32_t Bme280_compensate_H(struct BME280_Sensor_Struct *BME280)
 }
 
 /*
- *	º¯ÊıÃû : Get_Bme280Value
- *	ÃèÊö	 : BME280 ÎÂ¶È£¬Êª¶È£¬Ñ¹Á¦¼ÆËã
- *	ÊäÈë	 £ºÎŞ
- *	·µ»ØÖµ £ºÎŞ
+ *	å‡½æ•°å : Get_Bme280Value
+ *	æè¿°	 : BME280 æ¸©åº¦ï¼Œæ¹¿åº¦ï¼Œå‹åŠ›è®¡ç®—
+ *	è¾“å…¥	 ï¼šæ— 
+ *	è¿”å›å€¼ ï¼šæ— 
  */
 int Get_Bme280Value(struct BME280_Sensor_Struct *BME280)
 {
 	
-	/*¶ÁÈ¡ÎÂ¶ÈÑ¹Á¦Êª¶ÈÊı¾İ*/	
+	/*è¯»å–æ¸©åº¦å‹åŠ›æ¹¿åº¦æ•°æ®*/	
 	if(IIC_Bme280_Read_Data(BME280) == 1)
 	{
 		BME280->Temperature = Bme280_temperature(BME280)*10;   //100
@@ -345,7 +345,7 @@ void BME280_task_entry_1(void *param)
 				}
 				else
 				{
-					/* ¶ÁÈ¡ÎÂ¶ÈÑ¹Á¦²¹³¥Öµ */
+					/* è¯»å–æ¸©åº¦å‹åŠ›è¡¥å¿å€¼ */
 					IIC_Read_NBytes(BME280_Sensor1.I2C, BME280_DEVICE_ADDR, 0x88 , 24, buf_Bme280);
 					BME280_Sensor1.Register.dig_T1 = buf_Bme280[1] << 8 | buf_Bme280[0];
 					BME280_Sensor1.Register.dig_T2 = buf_Bme280[3] << 8 | buf_Bme280[2];
@@ -460,7 +460,7 @@ void BME280_task_entry_2(void *param)
 				}
 				else
 				{
-					/* ¶ÁÈ¡ÎÂ¶ÈÑ¹Á¦²¹³¥Öµ */
+					/* è¯»å–æ¸©åº¦å‹åŠ›è¡¥å¿å€¼ */
 					IIC_Read_NBytes(BME280_Sensor2.I2C, BME280_DEVICE_ADDR, 0x88 , 24, buf_Bme280);
 					BME280_Sensor2.Register.dig_T1 = buf_Bme280[1] << 8 | buf_Bme280[0];
 					BME280_Sensor2.Register.dig_T2 = buf_Bme280[3] << 8 | buf_Bme280[2];
@@ -557,7 +557,7 @@ void BME280_reset_task_entry_1(void *param)
 			is_reseting=1;
 			BME280_reset();
 			rt_thread_delay(500);
-			bak_temp=-80000;  //¸´Î»ºó±¸·İÖµ»¹ÊÇ²ÉÓÃÖ®Ç°µÄ
+			bak_temp=-80000;  //å¤ä½åå¤‡ä»½å€¼è¿˜æ˜¯é‡‡ç”¨ä¹‹å‰çš„
 			bak_humi=-80;
 			is_reseting=0;
 		}	
