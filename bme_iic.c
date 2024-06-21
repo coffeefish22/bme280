@@ -5,32 +5,33 @@
 #include "myconfig.h"
 #include <rtthread.h>
 #include "globalsys.h"
-
+//如果没有对电源的控制
+//可以删除使能控制
 void I2C_Register(void);
 
-I2C_Bit_Ops IIC1_Bit;		//����һ�� ��I2C1 ����
-I2C_Bit_Ops IIC2_Bit;		//����һ�� ��I2C2 ����
+I2C_Bit_Ops IIC1_Bit;		//创建一个 软I2C1 总线
+I2C_Bit_Ops IIC2_Bit;		//创建一个 软I2C2 总线
 
 void IIC_GPIO_Config(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
-	/* ʹ��GPIOʱ�� */
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD , ENABLE);		//ʱ��ʹ�� 	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_14; 	//��IIC PB10--SCL , PB11--SDA
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD; 		   		//��©���
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;		   		//IO���ٶ�Ϊ10MHz
-	GPIO_Init(GPIOD, &GPIO_InitStructure);					 		   		//������ʼ��
+	/* 使能GPIO时钟 */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD , ENABLE);		//时钟使能 	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_14; 	//软IIC PB10--SCL , PB11--SDA
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD; 		   		//开漏输出
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;		   		//IO口速度为10MHz
+	GPIO_Init(GPIOD, &GPIO_InitStructure);					 		   		//参数初始化
  	GPIO_SetBits(GPIOD, GPIO_Pin_12 | GPIO_Pin_14);  
 	
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------		
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_13; 	//��IIC PB6--SCL , PB7--SDA
-	GPIO_Init(GPIOD, &GPIO_InitStructure);					 		   	//������ʼ��
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_13; 	//软IIC PB6--SCL , PB7--SDA
+	GPIO_Init(GPIOD, &GPIO_InitStructure);					 		   	//参数初始化
  	GPIO_SetBits(GPIOD, GPIO_Pin_11 | GPIO_Pin_13);  
 
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;   
- 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; //��©���   
- 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; //22Mʱ���ٶ�   
+ 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; //开漏输出   
+ 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; //22M时钟速度   
  	GPIO_Init(GPIOC, &GPIO_InitStructure);
 #ifdef HUMI_CONTROL_FAN	
 	GPIO_SetBits(GPIOC, GPIO_Pin_9);
@@ -61,7 +62,7 @@ void IIC_Start(I2C_Bit_Ops *I2C)
 }	 
 
 
-//����IICֹͣ�ź�
+//产生IIC停止信号
 void IIC_Stop(I2C_Bit_Ops *I2C)
 {
 
@@ -74,14 +75,14 @@ void IIC_Stop(I2C_Bit_Ops *I2C)
 	
 	delay_us(I2C_DELAY_TIME);
 	
-	I2C->IIC_SDA_OUT(1); //����I2C���߽����ź�
+	I2C->IIC_SDA_OUT(1); //发送I2C总线结束信号
 	
 	delay_us(I2C_DELAY_TIME);							   	
 }
 
-//�ȴ�Ӧ���źŵ���
-//����ֵ��1������Ӧ��ʧ��
-//        0������Ӧ��ɹ�
+//等待应答信号到来
+//返回值：1，接收应答失败
+//        0，接收应答成功
 u8 IIC_Wait_Ack(I2C_Bit_Ops *I2C)
 {
 	u8 ucErrTime=0;
@@ -104,14 +105,14 @@ u8 IIC_Wait_Ack(I2C_Bit_Ops *I2C)
 		}
 	}
 
-	I2C->IIC_SCL_OUT(0); //ʱ�����0 	
+	I2C->IIC_SCL_OUT(0); //时钟输出0 	
 	delay_us(I2C_DELAY_TIME);
 	I2C->IIC_SDA_OUT(1);
 	delay_us(I2C_DELAY_TIME);
 	return 0;  
 } 
 
-//����ACKӦ��
+//产生ACK应答
 void IIC_Ack(I2C_Bit_Ops *I2C)
 {
 	
@@ -131,7 +132,7 @@ void IIC_Ack(I2C_Bit_Ops *I2C)
 	delay_us(I2C_DELAY_TIME);
 }
 
-//������ACKӦ��		    
+//不产生ACK应答		    
 void IIC_NAck(I2C_Bit_Ops *I2C)
 {
 
@@ -142,15 +143,15 @@ void IIC_NAck(I2C_Bit_Ops *I2C)
 	I2C->IIC_SCL_OUT(0);
 }	
 
-//IIC����һ���ֽ�
-//���شӻ�����Ӧ��
-//1����Ӧ��
-//0����Ӧ��			  
+//IIC发送一个字节
+//返回从机有无应答
+//1，有应答
+//0，无应答			  
 void IIC_Send_Byte(I2C_Bit_Ops *I2C, u8 txd)
 {                        
 	u8 t;   
 	
-	I2C->IIC_SCL_OUT(0); //����ʱ�ӿ�ʼ���ݴ���
+	I2C->IIC_SCL_OUT(0); //拉低时钟开始数据传输
 
 	for(t = 0; t < 8; t++)
 	{
@@ -170,7 +171,7 @@ void IIC_Send_Byte(I2C_Bit_Ops *I2C, u8 txd)
 	delay_us(I2C_DELAY_TIME);
 } 	
 
-//��1���ֽڣ�ack=1ʱ������ACK��ack=0������nACK   
+//读1个字节，ack=1时，发送ACK，ack=0，发送nACK   
 u8 IIC_Read_Byte(I2C_Bit_Ops *I2C, unsigned char ack)
 {
 	unsigned char i = 0;
@@ -192,9 +193,9 @@ u8 IIC_Read_Byte(I2C_Bit_Ops *I2C, unsigned char ack)
 
 	
 	if (!ack)
-			IIC_NAck(I2C);//����nACK
+			IIC_NAck(I2C);//发送nACK
 	else
-			IIC_Ack(I2C); //����ACK   
+			IIC_Ack(I2C); //发送ACK   
 	return receive;
 }
 
