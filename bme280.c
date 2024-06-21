@@ -436,6 +436,7 @@ void BME280_task_init1()
 }
 #endif
 #ifdef BME2
+//防止湿度突变....
 void BME280_task_entry_2(void *param)
 {
 	int count =0;
