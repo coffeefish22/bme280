@@ -33,11 +33,6 @@ void IIC_GPIO_Config(void)
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; //开漏输出   
  	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; //22M时钟速度   
  	GPIO_Init(GPIOC, &GPIO_InitStructure);
-#ifdef HUMI_CONTROL_FAN	
-	GPIO_SetBits(GPIOC, GPIO_Pin_9);
-#else
-	GPIO_ResetBits(GPIOC, GPIO_Pin_9);
-#endif
 
 	I2C_Register();
 }
