@@ -7,7 +7,8 @@
 #include "globalsys.h"
 #include "globalval.h"
 #ifdef USE_BME280_TASK
-//stm32 rt_thread 2.0				  
+//stm32 rt_thread 2.0	
+//延时控制一定要准确,最后是单独一个定时器控制
 struct BME280_Sensor_Struct BME280_Sensor1;
 struct BME280_Sensor_Struct BME280_Sensor2;
 #define MAX_BME280_ERROR 30
