@@ -524,48 +524,7 @@ void BME280_task_init2()
 
 }
 #endif
-#define BME280_EN_PORT 	GPIOC
-#define BME280_EN_PIN	GPIO_Pin_9
-#define BME280_EN_RCC	RCC_APB2Periph_GPIOC
-#ifdef HUMI_CONTROL_FAN
-#define Set_BME280_Enable() GPIO_SetBits(BME280_EN_PORT,BME280_EN_PIN)  
-#define Set_BME280_Disable() GPIO_ResetBits(BME280_EN_PORT,BME280_EN_PIN)  	
-#else
-#define Set_BME280_Enable() GPIO_ResetBits(BME280_EN_PORT,BME280_EN_PIN)  
-#define Set_BME280_Disable() GPIO_SetBits(BME280_EN_PORT,BME280_EN_PIN)  	
-#endif
-void BME280_reset(void)
-{
-	#define BME280_RESET_TIM	2000
-	{
-		Set_BME280_Disable();
-		rt_thread_delay(BME280_RESET_TIM);
-		Set_BME280_Enable();
-		rt_thread_delay(BME280_RESET_TIM);
-		Bme280_InitParam(&BME280_Sensor1);
-		Bme280_InitParam(&BME280_Sensor2);
-	}
 
-}
-
-void BME280_reset_task_entry_1(void *param)
-{
-	#define SHT75_RESET_SCAN_TIM 100
-	while(1)
-	{
-		if(reset_flag)
-		{
-			reset_flag =0;
-			is_reseting=1;
-			BME280_reset();
-			rt_thread_delay(500);
-			bak_temp=-80000;  //复位后备份值还是采用之前的
-			bak_humi=-80;
-			is_reseting=0;
-		}	
-		rt_thread_delay(SHT75_RESET_SCAN_TIM);
-	}
-}
 
 #endif
 
