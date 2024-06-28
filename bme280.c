@@ -353,7 +353,7 @@ void BME280_task_entry_1(void *param)
 					BME280_Sensor1.Register.dig_T3 = buf_Bme280[5] << 8 | buf_Bme280[4];
 				}
 				count=0;
-				if(bak_bme280_temp<-50000||bme280_abs(bak_bme280_temp-BME280_Sensor1.Temperature)<10000)
+				if(1)
 				{
 					if(BME280_Sensor1.Temperature>-50000 &&BME280_Sensor1.Temperature<70000)
 					{
@@ -371,7 +371,7 @@ void BME280_task_entry_1(void *param)
 				{
 					count++;
 				}
-				if(bak_bme280_humi<0||bme280_abs(bak_bme280_humi-BME280_Sensor1.Humidity)<15000)
+				if(1)
 				{
 					if(BME280_Sensor1.Humidity>=0 &&BME280_Sensor1.Humidity<=100000)
 					{
