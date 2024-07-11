@@ -14,7 +14,6 @@ struct BME280_Sensor_Struct BME280_Sensor2;
 #define MAX_BME280_ERROR 30
 volatile int is_reseting=0;
 char reset_flag=0;
-extern float bak_temp,bak_humi;
 
 /*
  *	函数名 : IIC_ReadOneByte
